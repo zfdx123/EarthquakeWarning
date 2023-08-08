@@ -1,0 +1,11 @@
+{
+  "latitude": xx.xxxxxx,
+  "longitude": xxx.xxxxxx,
+  "enableMail": false,
+  "authCode": "XXXXXXXX",
+  "sandMali": "xxxxxxxxx@xx.xx",
+  "sendName": "xxxx",
+  "serviceHost": "smtp.163.com",
+  "servicePort": 465,
+  "receive": "xxxxxxxxx@xx.xx"
+}
