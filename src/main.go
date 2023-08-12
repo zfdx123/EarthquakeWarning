@@ -28,8 +28,6 @@ type No struct {
 	Longitude string `json:"longitude"`
 }
 
-var QuakeT map[string]*No
-
 type config struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
@@ -42,6 +40,8 @@ type config struct {
 	ServicePort int    `json:"servicePort"`
 	Receive     string `json:"receive"`
 }
+
+//var QuakeT map[string]interface{}
 
 func main() {
 	var info config
@@ -82,9 +82,12 @@ func newApi(info config) {
 	var (
 		client *http.Client
 		wg     sync.WaitGroup
-		maps   = QuakeT
+		maps   map[string]interface{}
+		mapM   map[string]*No
 		api    = "https://api.wolfx.jp/cenc_eqlist.json"
 	)
+	maps = make(map[string]interface{})
+	mapM = make(map[string]*No)
 
 	client = &http.Client{
 		Transport: &http.Transport{
@@ -124,8 +127,19 @@ func newApi(info config) {
 		log.Println("Json Body:", err.Error())
 		return
 	}
+	delete(maps, "md5")
+	marshal, err := json.Marshal(maps)
+	if err != nil {
+		log.Println("Json Marshal:", err.Error())
+		return
+	}
+	err = json.Unmarshal(marshal, &mapM)
+	if err != nil {
+		log.Println("Json Body:", err.Error())
+		return
+	}
 
-	No0 := maps["No0"]
+	No0 := mapM["No1"]
 
 	// Test Data
 	//No0.Type = "automatic"
@@ -168,7 +182,7 @@ func newApi(info config) {
 	}
 
 	// No0.Type == "automatic" && strings.Contains(No0.Location, "山东") || No0.Type == "automatic" && dis <= 500.00
-	if No0.Type == "automatic" && intensityAtDistance > 0.0 {
+	if No0.Type == "automatic" && intensityAtDistance > 2.5 {
 		travelTime := calculateTravelTime(dis, 7.0)
 		go playMusic(&wg)
 		go countdown(travelTime, &wg, intensityAtDistance)
@@ -185,10 +199,10 @@ func newApi(info config) {
 		} else {
 			wg.Add(-2)
 		}
-		idx := []string{"No0", "No2", "No3", "No4"}
+		idx := []string{"No1", "No2", "No3", "No4"}
 		fmt.Println("###################################################################################################")
 		for _, i := range idx {
-			Nox := maps[i]
+			Nox := mapM[i]
 			msg := fmt.Sprintf("地点: %s, 时间: %s, 震级: %s, 纬度: %s, 经度: %s, 深度: %s", Nox.Location, Nox.Time, Nox.Magnitude, Nox.Latitude, Nox.Longitude, Nox.Depth)
 			fmt.Printf("%c[%d;%d;%dm%s%c[0m\n", 0x1B, 0, 40, 32, msg, 0x1B)
 		}
